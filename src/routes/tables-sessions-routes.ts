@@ -3,11 +3,11 @@ import { TablesSessionsController } from "@/controllers/tables-sessions-controll
 import { Router } from "express";
 
 const tablesSessionsRoutes = Router()
-const tableSessionsController =  new TablesSessionsController()
+const tablesSessionsController =  new TablesSessionsController()
 
-tablesSessionsRoutes.get("/", tableSessionsController.index)
-tablesSessionsRoutes.post("/", tableSessionsController.create)
-// tablesRoutes.put("/:id", tablesController.update)
+tablesSessionsRoutes.get("/", tablesSessionsController.index)
+tablesSessionsRoutes.post("/", tablesSessionsController.create)
+tablesSessionsRoutes.patch("/:id", tablesSessionsController.update)
 // tablesRoutes.delete("/:id", tablesController.remove)
 
 

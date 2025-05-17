@@ -1,12 +1,11 @@
 import { AppError } from "@/utils/AppError";
 import { NextFunction, Request, Response } from "express";
-import { z } from "zod"
+import { number, z } from "zod"
 import { knex } from "@/database/knex";
 
 class TablesSessionsController {
   async create(request: Request, response: Response, next: NextFunction) {
     try {
-
       const bodySchema = z.object({
         table_id: z.number()
       })
@@ -37,6 +36,28 @@ class TablesSessionsController {
       const sessions = await knex<TableSessionsRepository>("tables_sessions").orderBy("closed_at")
 
       return response.status(200).json(sessions)
+    } catch (error) {
+      next(error)
+    }
+  }
+
+    async update(request: Request, response: Response, next: NextFunction) {
+    try {
+      const id  = z.string().transform((value)=> Number(value)).refine((value)=> !isNaN(value), {message: "id must be a number"}).parse(request.params.id)
+
+      const sessions = await knex<TableSessionsRepository>("tables_sessions").where({id}).first()
+
+      if(!sessions){
+        throw new AppError("Session table not found")
+      }
+
+      if(sessions.closed_at){
+        throw new AppError("This session table is already closed")
+      }
+
+      await knex<TableSessionsRepository>("tables_sessions").update({closed_at: knex.fn.now()}).where({id})
+
+      return response.json()
     } catch (error) {
       next(error)
     }
