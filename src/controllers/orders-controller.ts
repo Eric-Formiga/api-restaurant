@@ -70,27 +70,33 @@ class OrdersController {
     }
   }
 
-  // async (request: Request, response: Response, next: NextFunction) {
-  //   try {
-  //     const id = z.string().transform((value) => Number(value)).refine((value) => !isNaN(value), { message: "id must be a number" }).parse(request.params.id)
+  async show(request: Request, response: Response, next: NextFunction) {
+    try {
+      const { table_session_id } = request.params
 
-  //     const sessions = await knex<TableSessionsRepository>("tables_sessions").where({ id }).first()
+      const order = await knex("orders")
+        .select(
+          knex.raw("COALESCE(SUM(orders.price * orders.quantity),0) as total"),
+          knex.raw("COALESCE(SUM(orders.quantity),0) as Quantity"),
+        )
+        .where({ table_session_id })
+        .first()
 
-  //     if (!sessions) {
-  //       throw new AppError("Session table not found")
-  //     }
+      // if (!sessions) {
+      //   throw new AppError("Session table not found")
+      // }
 
-  //     if (sessions.closed_at) {
-  //       throw new AppError("This session table is already closed")
-  //     }
+      // if (sessions.closed_at) {
+      //   throw new AppError("This session table is already closed")
+      // }
 
-  //     await knex<TableSessionsRepository>("tables_sessions").update({ closed_at: knex.fn.now() }).where({ id })
+      // await knex<TableSessionsRepository>("tables_sessions").update({ closed_at: knex.fn.now() }).where({ id })
 
-  //     return response.json()
-  //   } catch (error) {
-  //     next(error)
-  //   }
-  // }
+      return response.json(order)
+    } catch (error) {
+      next(error)
+    }
+  }
 
 }
 
