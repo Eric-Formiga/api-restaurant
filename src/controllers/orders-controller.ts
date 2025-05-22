@@ -12,9 +12,9 @@ class OrdersController {
         quantity: z.number(),
       })
 
-      const { table_session_id, product_id,quantity } = bodySchema.parse(request.body)
+      const { table_session_id, product_id, quantity } = bodySchema.parse(request.body)
 
-     const session = await knex<TableSessionsRepository>("tables_sessions").where({ id: table_session_id }).first()
+      const session = await knex<TableSessionsRepository>("tables_sessions").where({ id: table_session_id }).first()
 
       if (!session) {
         throw new AppError("Session table not found")
@@ -44,17 +44,33 @@ class OrdersController {
     }
   }
 
-  // async index(request: Request, response: Response, next: NextFunction) {
-  //   try {
-  //     const sessions = await knex<TableSessionsRepository>("tables_sessions").orderBy("closed_at")
+  async index(request: Request, response: Response, next: NextFunction) {
+    try {
+      const { table_session_id } = request.params
 
-  //     return response.status(200).json(sessions)
-  //   } catch (error) {
-  //     next(error)
-  //   }
-  // }
+      const order = await knex("orders")
+        .select(
+          "orders.id",
+          "orders.table_session_id",
+          "orders.product_id",
+          "products.name as product_name",
+          "orders.price",
+          "orders.quantity",
+          knex.raw("(orders.price * orders.quantity) as total"),
+          "orders.created_at",
+          "orders.updated_at",
+        )
+        .join("products", "products.id", "orders.product_id")
+        .where({ table_session_id })
+        .orderBy("orders.created_at")
 
-  // async update(request: Request, response: Response, next: NextFunction) {
+      return response.status(200).json(order)
+    } catch (error) {
+      next(error)
+    }
+  }
+
+  // async (request: Request, response: Response, next: NextFunction) {
   //   try {
   //     const id = z.string().transform((value) => Number(value)).refine((value) => !isNaN(value), { message: "id must be a number" }).parse(request.params.id)
 
